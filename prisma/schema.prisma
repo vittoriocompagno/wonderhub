@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id          String   @id @unique
+  email       String
+  firstName   String
+  lastName    String
+  profileImage String?
+
+  subscriptionTier       SubscriptionTier @default(FREE)
+  subscriptionStartDate  DateTime @default(now())
+  subscriptionEndDate    DateTime?
+
+  properties  Property[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  title       String?
+  description String?
+  address     String?
+  imageUrl    String?
+  category    String?
+  
+  // Google Business integration
+  googlePlaceId String?
+  googleRating  Float?
+  totalReviews  Int?
+  
+  // Custom links
+  customLinks CustomLink[]
+  socialLinks SocialLink[]
+  rooms       Room[]
+  analytics   Analytics[]
+  
+  // Property creation flow flags
+  addedCategory     Boolean? @default(false)
+  addedDescription  Boolean? @default(false)
+  addedLocation     Boolean? @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model CustomLink {
+  id          String   @id @default(uuid())
+  title       String
+  url         String
+  icon        String?
+  clicks      Int      @default(0)
+  
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SocialLink {
+  id          String   @id @default(uuid())
+  platform    String   // instagram, facebook, twitter, etc.
+  url         String
+  clicks      Int      @default(0)
+  
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?
+  
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  analytics   Analytics[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Analytics {
+  id          String   @id @default(uuid())
+  eventType   String   // pageView, linkClick, etc.
+  ipHash      String?  // Hashed for GDPR compliance
+  userAgent   String?
+  country     String?
+  city        String?
+  
+  propertyId  String?
+  property    Property? @relation(fields: [propertyId], references: [id])
+  roomId      String?
+  room        Room?     @relation(fields: [roomId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
