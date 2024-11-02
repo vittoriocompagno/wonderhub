@@ -45,14 +45,20 @@ export async function createList(userId: string) {
 // Function to handle form submission for creating a list page
 export async function createListPage(formData: FormData) {
   const propertyId = formData.get("propertyId");
-  
+  const category = formData.get("category");
+
   if (!propertyId || typeof propertyId !== "string") {
     throw new Error("Property ID is required");
+  }
+
+  if (!category || typeof category !== "string") {
+    throw new Error("Category is required");
   }
 
   const property = await prisma.property.update({
     where: { id: propertyId },
     data: {
+      category,
       addedCategory: true,
     },
   });

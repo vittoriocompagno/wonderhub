@@ -53,3 +53,19 @@ export async function getProperty(propertyId: string, userId: string) {
     }
   });
 } 
+
+
+const updatePropertySchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  category: z.string().optional(),
+});
+
+export async function updateProperty(propertyId: string, data: z.infer<typeof updatePropertySchema>) {
+  const validated = updatePropertySchema.parse(data);
+
+  return await prisma.property.update({
+    where: { id: propertyId },
+    data: validated,
+  });
+}
