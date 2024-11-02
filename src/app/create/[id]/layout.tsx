@@ -7,5 +7,5 @@ import type { ReactNode } from "react";
 export default function CreateLayout({ children }: { children: ReactNode }) {
   // The component returns a div element with a top margin of 10 units.
   // The 'children' prop is rendered inside this div, allowing any nested components or elements to be displayed.
-  return <div className="mt-10 h-screen">{children}</div>;
+  return <div className="min-h-fit">{children}</div>;
 }

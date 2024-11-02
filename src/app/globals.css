@@ -98,4 +98,21 @@
   }
 }
 
+/* Add these styles to ensure full height layout */
+html,
+body,
+body > div:first-child,
+div#__next,
+div#__next > div {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* For mobile viewport height issues */
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
 

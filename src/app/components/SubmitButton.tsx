@@ -8,31 +8,67 @@ interface SubmitButtonProps {
     disabled?: boolean;
     isLoading?: boolean;
     nextButtonText?: string;
+    variant?: 'default' | 'pill';
 }
 
 // Define the SubmitButton component
-export function SubmitButton({ disabled = false, isLoading = false, nextButtonText = "Next" }: SubmitButtonProps) {
+export function SubmitButton({ 
+    disabled = false, 
+    isLoading = false, 
+    nextButtonText = "Next",
+    variant = 'default'
+}: SubmitButtonProps) {
     // Destructure the 'pending' state from useFormStatus hook
     const { pending } = useFormStatus();
 
-    // Return the JSX for the button
-    return (
-        <>
-          {pending ? ( // If the form is pending (submitting)
-            <Button type="submit" size="lg" className="w-full" disabled>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin"/> {/* Show a spinning loader icon */}
-              Processing {/* Display 'Processing' text */}
+    if (variant === 'pill') {
+        return (
+            <Button 
+                type="submit" 
+                size="icon"
+                className="rounded-full" 
+                disabled={disabled || pending}
+            >
+                {pending ? (
+                    <Loader2 className="h-4 w-4 animate-spin"/>
+                ) : (
+                    "→"
+                )}
             </Button>
-          ) : ( // If the form is not pending
-            <Button type="submit" size="lg" className="w-full" disabled={disabled}>
-              {nextButtonText} {/* Display 'Next' text */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14"/> {/* Draw a horizontal line */}
-                <path d="m12 5 7 7-7 7"/> {/* Draw an arrow pointing right */}
-              </svg>
-            </Button>
-          )}
+        );
+    }
 
-        </>
-    )
+    return (
+        <Button 
+            type="submit" 
+            size="lg" 
+            className="w-full" 
+            disabled={disabled || pending}
+        >
+            {pending ? (
+                <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                    Processing
+                </>
+            ) : (
+                <>
+                    {nextButtonText}
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                    >
+                        <path d="M5 12h14"/>
+                        <path d="m12 5 7 7-7 7"/>
+                    </svg>
+                </>
+            )}
+        </Button>
+    );
 }

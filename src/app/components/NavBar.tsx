@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Logo from "../../../public/vercel.svg";
 import { UserNav } from "./UserNav";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 // Function component for the navigation bar
 export function Navbar() {
@@ -25,8 +26,10 @@ export function Navbar() {
           <span className="text-sm sm:text-base font-bold">WonderHub</span>
         </Link>
 
-        {/* User navigation component */}
-        <UserNav />
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <UserNav />
+        </div>
       </div>
     </nav>
   );

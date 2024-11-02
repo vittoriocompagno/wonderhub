@@ -6,10 +6,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useState } from "react"
 
 interface SelectCategoryProps {
+  name: string;
   onCategorySelect: (category: string) => void;
 }
 
-export function SelectCategory({ onCategorySelect }: SelectCategoryProps) {
+export function SelectCategory({ name, onCategorySelect }: SelectCategoryProps) {
   const [category, setCategory] = useState<string>('')
 
   const handleCategorySelect = (categoryName: string) => {
@@ -19,7 +20,7 @@ export function SelectCategory({ onCategorySelect }: SelectCategoryProps) {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center py-8">
-      <input type="hidden" name="category" value={category} />
+      <input type="hidden" name={name} value={category} />
       
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">

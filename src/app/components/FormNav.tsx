@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SubmitButton } from "./SubmitButton";
+import { StepProgress } from "./StepProgress";
 
 interface FormNavProps {
     backLink: string;
@@ -14,7 +14,13 @@ interface FormNavProps {
     nextButtonText?: string;
 }
 
-export function FormNav({ backLink, showBackButton = false, propertyId, isNextDisabled = false, isLoading = false, nextButtonText }: FormNavProps) {
+export const FormNav = ({ 
+    backLink, 
+    showBackButton = false, 
+    isNextDisabled = false, 
+    isLoading = false, 
+    nextButtonText 
+}: FormNavProps) => {
     const router = useRouter();
 
     const handleBack = () => {
@@ -27,33 +33,65 @@ export function FormNav({ backLink, showBackButton = false, propertyId, isNextDi
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/80 backdrop-blur-sm shadow-[0_-1px_3px_rgba(0,0,0,0.1)]">
-            <div className="container mx-auto p-4 sm:p-6">
-                <div className="flex gap-3 sm:gap-4 justify-center items-center w-full sm:w-1/2 mx-auto">
+        <>
+            {/* Desktop Layout */}
+            <div className="fixed right-8 hidden md:flex md:flex-col md:gap-4">
+                <StepProgress />
+                <div className="w-[368px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-3xl border shadow-lg">
+                    <div className="flex flex-col gap-2">
+                        <SubmitButton 
+                            disabled={isNextDisabled} 
+                            nextButtonText={nextButtonText}
+                        />
+                        {showBackButton ? (
+                            <Button 
+                                variant="outline" 
+                                className="w-full rounded-full h-12"
+                                onClick={handleBack}
+                            >
+                                Back
+                            </Button>
+                        ) : (
+                            <Button 
+                                variant="outline" 
+                                className="w-full rounded-full h-12"
+                                onClick={handleCancel}
+                            >
+                                Cancel
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile Layout */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] md:hidden">
+                <div className="flex gap-2 justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-3xl border shadow-lg">
                     {showBackButton ? (
                         <Button 
                             variant="outline" 
-                            size="default"
-                            className="w-full text-sm sm:text-base"
+                            className="flex-1 rounded-full h-12"
                             onClick={handleBack}
                         >
-                            Go Back
+                            Back
                         </Button>
                     ) : (
                         <Button 
                             variant="outline" 
-                            size="default" 
-                            className="w-full text-sm sm:text-base"
+                            className="flex-1 rounded-full h-12"
                             onClick={handleCancel}
                         >
                             Cancel
                         </Button>
                     )}
-                    <div className="w-full">
-                        <SubmitButton disabled={isNextDisabled} nextButtonText={nextButtonText} />
+                    <div className="flex-1">
+                        <SubmitButton 
+                            disabled={isNextDisabled} 
+                            nextButtonText={nextButtonText}
+                        />
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
-} 
+}; 
