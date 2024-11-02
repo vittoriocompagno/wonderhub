@@ -14,7 +14,17 @@ datasource db {
 enum SubscriptionTier {
   FREE
   PRO
-  ENTERPRISE
+  PREMIUM
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  TWITTER
+  LINKEDIN
+  YOUTUBE
+  TIKTOK
+  // ... other platforms
 }
 
 model User {
@@ -47,11 +57,19 @@ model Property {
   totalReviews  Int?
   
   // Custom links
-  customLinks CustomLink[]
-  socialLinks SocialLink[]
-  rooms       Room[]
-  analytics   Analytics[]
+  customLinks CustomLink[]  // Custom links for any external URL (like menu, booking sites, etc.)
+  socialLinks SocialLink[]  // Specifically for social media platforms
+  subProperties SubProperty[]    // Renamed from Room
   
+  // Analytics
+  pageViews    Int       @default(0)  // Total property page views
+  uniqueViews  Int       @default(0)  // Unique visitors
+  lastViewedAt DateTime?
+  analytics    PropertyAnalytics[] // Detailed tracking for all property interactions
+
+  // New field for review links
+  reviewLinks Json?        // Stores review platform links (Google, Yelp, TripAdvisor, etc.)
+
   // Property creation flow flags
   addedCategory     Boolean? @default(false)
   addedDescription  Boolean? @default(false)
@@ -64,59 +82,119 @@ model Property {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-model CustomLink {
-  id          String   @id @default(uuid())
-  title       String
-  url         String
-  icon        String?
-  clicks      Int      @default(0)
-  
-  propertyId  String
-  property    Property @relation(fields: [propertyId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model SocialLink {
-  id          String   @id @default(uuid())
-  platform    String   // instagram, facebook, twitter, etc.
-  url         String
-  clicks      Int      @default(0)
-  
-  propertyId  String
-  property    Property @relation(fields: [propertyId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Room {
+model SubProperty {
   id          String   @id @default(uuid())
   name        String
   description String?
   imageUrl    String?
+  slug        String   // For URL routing: wonderhub.com/propertyname/slug
+  
+  // Analytics
+  pageViews    Int     @default(0)
+  uniqueViews  Int     @default(0)
+  lastViewedAt DateTime?
+  
+  propertyId   String
+  property     Property @relation(fields: [propertyId], references: [id])
+  analytics    PropertyAnalytics[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([propertyId, slug])
+  @@index([propertyId])
+}
+
+model CustomLink {
+  id          String   @id @default(uuid())
+  title       String   // Display name for the link
+  url         String   // Full URL including https://
+  icon        String?  // Icon identifier or URL
+  clicks      Int      @default(0)  // Click tracking counter
+  
+  // Analytics relation
+  analytics   PropertyAnalytics[]  // Relation to track all interactions
   
   propertyId  String
   property    Property @relation(fields: [propertyId], references: [id])
-  analytics   Analytics[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  position    Int     @default(0)  // For custom ordering of links
+  active      Boolean @default(true)  // To enable/disable links without deletion
 }
 
-model Analytics {
+model SocialLink {
   id          String   @id @default(uuid())
-  eventType   String   // pageView, linkClick, etc.
-  ipHash      String?  // Hashed for GDPR compliance
-  userAgent   String?
-  country     String?
-  city        String?
+  platform    SocialPlatform
+  url         String   // Full social media profile URL
+  clicks      Int      @default(0)  // Click tracking counter
   
-  propertyId  String?
-  property    Property? @relation(fields: [propertyId], references: [id])
-  roomId      String?
-  room        Room?     @relation(fields: [roomId], references: [id])
+  // Analytics relation
+  analytics   PropertyAnalytics[]  // Relation to track all interactions
+  
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
   
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  position    Int     @default(0)  // For custom ordering of links
+  active      Boolean @default(true)  // To enable/disable links without deletion
+}
+
+// Comprehensive analytics model for all property interactions
+model PropertyAnalytics {
+  id          String    @id @default(uuid())
+  
+  // Event type classification
+  eventType   EventType // Enum defined below
+  
+  // Reference to different entities
+  propertyId  String
+  property    Property     @relation(fields: [propertyId], references: [id])
+  subPropertyId String?
+  subProperty SubProperty? @relation(fields: [subPropertyId], references: [id])
+  customLinkId String?
+  customLink  CustomLink?  @relation(fields: [customLinkId], references: [id])
+  socialLinkId String?
+  socialLink  SocialLink?  @relation(fields: [socialLinkId], references: [id])
+  
+  // Visitor information
+  ipHash      String?   // Hashed IP for GDPR compliance
+  sessionId   String?   // To track unique visits
+  userAgent   String?   // Browser/device information
+  referer     String?   // Where the visitor came from
+  
+  // Geolocation
+  country     String?
+  city        String?
+  region      String?
+  
+  // Device information
+  deviceType  String?   // mobile, tablet, desktop
+  browser     String?   // chrome, firefox, safari, etc.
+  os          String?   // windows, mac, ios, android, etc.
+  
+  // Marketing tracking
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  
+  // Timing
+  createdAt   DateTime  @default(now())
+
+  @@index([propertyId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+enum EventType {
+  PROPERTY_VIEW        // Main property page view
+  SUBPROPERTY_VIEW    // SubProperty page view
+  CUSTOM_LINK_CLICK   // Custom link interaction
+  SOCIAL_LINK_CLICK   // Social link interaction
+  CONTACT_FORM        // If you add contact forms
+  BOOKING_INITIATED   // If you add booking functionality
+  REVIEW_CLICK        // If you add review links
+  // Add more event types as needed
 }

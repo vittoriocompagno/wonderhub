@@ -3,6 +3,7 @@
 import { z } from "zod";
 import prisma from "@/lib/db";
 import { DashboardProperties } from "./types";
+import { Prisma } from "@prisma/client";
 
 const userIdSchema = z.string().min(1, "User ID is required");
 const propertyIdSchema = z.string().min(1, "Property ID is required");
@@ -21,7 +22,7 @@ export async function getDashboardProperties(userId: string | undefined): Promis
     include: {
       analytics: {
         where: {
-          eventType: 'pageView'
+          eventType: 'PROPERTY_VIEW'
         }
       }
     },
@@ -47,7 +48,7 @@ export async function getProperty(propertyId: string, userId: string) {
     include: {
       analytics: {
         where: {
-          eventType: 'pageView'
+          eventType: 'PROPERTY_VIEW'
         }
       }
     }
@@ -59,6 +60,10 @@ const updatePropertySchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   category: z.string().optional(),
+  reviewLinks: z.array(z.object({
+    title: z.string().min(1, "Link title is required"),
+    url: z.string().url("Invalid URL"),
+  })).optional(),
 });
 
 export async function updateProperty(propertyId: string, data: z.infer<typeof updatePropertySchema>) {
@@ -66,6 +71,33 @@ export async function updateProperty(propertyId: string, data: z.infer<typeof up
 
   return await prisma.property.update({
     where: { id: propertyId },
-    data: validated,
+    data: {
+      ...validated,
+      reviewLinks: data.reviewLinks ? JSON.stringify(data.reviewLinks) : Prisma.JsonNull,
+    },
   });
+}
+
+const deletePropertySchema = z.object({
+  propertyId: z.string().min(1, "Property ID is required"),
+  userId: z.string().min(1, "User ID is required"),
+});
+
+export async function deleteProperty(propertyId: string, userId: string) {
+  try {
+    const validated = deletePropertySchema.parse({ propertyId, userId });
+    
+    // Delete the property and all related data
+    await prisma.property.delete({
+      where: {
+        id: validated.propertyId,
+        userId: validated.userId, // Ensure user owns the property
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    return { error: "Failed to delete property" };
+  }
 }
